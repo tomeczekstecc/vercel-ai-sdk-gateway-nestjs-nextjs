@@ -1,21 +1,28 @@
 'use client'
 import { useChat } from '@ai-sdk/react'
-import { DefaultChatTransport, modelMessageSchema } from 'ai'
-import { useState } from 'react'
+import { DefaultChatTransport } from 'ai'
+import { useMemo, useRef, useState } from 'react'
 
 export default function Home() {
     const [selectedModel, setSelectedModel] = useState(
         'google/gemini-2.5-flash-lite'
     )
 
+    const selectedModelRef = useRef(selectedModel)
+    selectedModelRef.current = selectedModel
+
     const { messages, sendMessage, status } = useChat({
-        transport: new DefaultChatTransport({
-            // api: '/api/chat', // rewrited to proxy in next.cinfig.js
-            api: `${process.env.NEXT_PUBLIC_API_URL}/chat`,
-            body: {
-                model: selectedModel,
-            },
-        }),
+        transport: useMemo(
+            () =>
+                new DefaultChatTransport({
+                    // api: '/api/chat', // rewrited to proxy in next.cinfig.js
+                    api: `${process.env.NEXT_PUBLIC_API_URL}/chat`,
+                    body: {
+                        model: selectedModelRef.current,
+                    },
+                }),
+            []
+        ),
     })
 
     const [input, setInput] = useState('')
@@ -93,34 +100,34 @@ export default function Home() {
                         </div>
                     </div>
                 )}
-                <form
-                    onSubmit={(e) => {
-                        e.preventDefault()
-                        if (input.trim()) {
-                            sendMessage({
-                                text: input,
-                            })
-                            setInput('')
-                        }
-                    }}
-                    className='flex gap-2 mx-1'
-                >
-                    <input
-                        type='text'
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder='Twoja wiadomość...'
-                        className='flex-1 px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray=500'
-                    />
-                    <button
-                        type='submit'
-                        disabled={status !== 'ready' || !input.trim()}
-                        className='px-6 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-                    >
-                        Wyślij
-                    </button>
-                </form>
             </div>
+            <form
+                onSubmit={(e) => {
+                    e.preventDefault()
+                    if (input.trim()) {
+                        sendMessage({
+                            text: input,
+                        })
+                        setInput('')
+                    }
+                }}
+                className='flex gap-2 mx-1'
+            >
+                <input
+                    type='text'
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder='Twoja wiadomość...'
+                    className='flex-1 px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray=500'
+                />
+                <button
+                    type='submit'
+                    disabled={status !== 'ready' || !input.trim()}
+                    className='px-6 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+                >
+                    Wyślij
+                </button>
+            </form>
         </div>
     )
 }
