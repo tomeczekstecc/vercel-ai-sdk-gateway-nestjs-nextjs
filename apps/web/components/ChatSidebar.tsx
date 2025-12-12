@@ -44,14 +44,14 @@ export function ChatSidebar() {
                     onClick={createNewChat}
                     className='w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium'
                 >
-                    + New Chat
+                    + Nowy czat
                 </button>
             </div>
 
             <div className='flex-1 overflow-y-auto p-2'>
                 {chats.length === 0 ? (
                     <div className='text-center text-gray-500 py-8 text-sm'>
-                        No chats yet
+                        Brak rozmów
                     </div>
                 ) : (
                     <div className='space-y-1'>
