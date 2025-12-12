@@ -2,6 +2,7 @@
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import { useMemo, useRef, useState } from 'react'
+import { WeatherCard } from '../components/WeatherCard'
 
 export default function Home() {
     const [selectedModel, setSelectedModel] = useState(
@@ -16,7 +17,7 @@ export default function Home() {
             () =>
                 new DefaultChatTransport({
                     // api: '/api/chat', // rewrited to proxy in next.cinfig.js
-                    api: `${process.env.NEXT_PUBLIC_API_URL}/chat`,
+                    api: `${process.env.NEXT_PUBLIC_API_URL}/chats`,
                     body: {
                         model: selectedModelRef.current,
                     },
@@ -54,6 +55,7 @@ export default function Home() {
                 {messages.map((message) => (
                     <div
                         key={message.id}
+                        id={message.id}
                         className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                         <div
@@ -74,6 +76,19 @@ export default function Home() {
                                             </div>
                                         )
                                     }
+
+                                    if (
+                                        part.type === 'tool-getWeatherTool' &&
+                                        part.state === 'output-available'
+                                    ) {
+                                        return (
+                                            <WeatherCard
+                                                key={index}
+                                                data={part.output as any}
+                                            />
+                                        )
+                                    }
+
                                     return null
                                 })}
                             </div>

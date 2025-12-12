@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1765518247443,
+      "tag": "0000_clear_ma_gnuci",
+      "breakpoints": true
+    }
+  ]
+}
