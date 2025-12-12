@@ -8,10 +8,10 @@ export class ChatController {
   constructor(private readonly chatService: ChatService) {}
   @Post()
   chat(
-    @Body() body: { messages: UIMessage[]; model: string },
+    @Body() body: { message: UIMessage; id: string; model: string },
     @Res() res: Response,
   ) {
-    this.chatService.chat(body.messages, body.model, res);
+    this.chatService.chat(body.message, res, body.id, body.model);
   }
 
   @Get()

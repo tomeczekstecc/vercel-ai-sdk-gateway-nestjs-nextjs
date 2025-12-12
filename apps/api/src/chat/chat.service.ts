@@ -19,17 +19,81 @@ export class ChatService {
     private readonly database: NodePgDatabase<typeof schema>,
   ) {}
 
-  chat(messages: UIMessage[], model: string, response: Response) {
+  async chat(
+    message: UIMessage,
+    response: Response,
+    chatId: string,
+    model: string,
+  ) {
+    let chat = await this.database.query.chats.findFirst({
+      where: eq(schema.chats.id, chatId),
+      with: {
+        messages: {
+          orderBy: [schema.messages.createdAt],
+        },
+      },
+    });
+
+    if (!chat) {
+      const [newChat] = await this.database
+        .insert(schema.chats)
+        .values({
+          id: chatId,
+        })
+        .returning();
+      chat = { ...newChat, messages: [] };
+    }
+
+    const storedMessagesAsc = chat.messages.map((m) => m.content as UIMessage);
+    const updatedAt = new Date();
+    await this.database.insert(schema.messages).values({
+      chatId: chat.id,
+      content: message,
+      createdAt: updatedAt,
+    });
+
+    await this.database
+      .update(schema.chats)
+      .set({
+        updatedAt,
+      })
+      .where(eq(schema.chats.id, chat.id));
+
+    const uiMessages = [...storedMessagesAsc, message];
+    const originalCount = uiMessages.length;
+
     const modelMessages: ModelMessage[] = [
       { role: 'system', content: this.getSystemPrompt() },
-      ...convertToModelMessages(messages),
+      ...convertToModelMessages(uiMessages),
     ];
+
     const result = streamText({
       model,
       messages: modelMessages,
       tools: this.toolsSercise.getAllTools(),
     });
-    result.pipeUIMessageStreamToResponse(response);
+    result.pipeUIMessageStreamToResponse(response, {
+      originalMessages: uiMessages,
+      onFinish: async ({ messages }) => {
+        const newMessages = messages.slice(originalCount);
+        if (newMessages.length === 0) return;
+        const baseTime = Date.now();
+
+        await this.database.insert(schema.messages).values(
+          newMessages.map((msg, idx) => ({
+            chatId: chat.id,
+            content: msg,
+            createdAt: new Date(baseTime + idx),
+          })),
+        );
+        await this.database
+          .update(schema.chats)
+          .set({
+            updatedAt: new Date(baseTime + newMessages.length - 1),
+          })
+          .where(eq(schema.chats.id, chat.id));
+      },
+    });
   }
 
   private getSystemPrompt() {
