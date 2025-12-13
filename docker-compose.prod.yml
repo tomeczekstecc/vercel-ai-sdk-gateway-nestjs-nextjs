@@ -1,0 +1,63 @@
+version: "3.8"
+
+services:
+  api:
+    image: registry-server.codderzz.com/vercel-gateway-nest-next/api:latest
+    pull_policy: always
+    container_name: nestjs-api
+    ports:
+      - "3002:3002"
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@192.168.100.120:5432/vercel-ai-sdk-gateway-nestjs-nextjs}
+      UI_URL: ${UI_URL:-http://localhost:3000}
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3002/chats",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  web:
+    image: registry-server.codderzz.com/vercel-gateway-nest-next/web:latest
+    pull_policy: always
+    container_name: nextjs-web
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      API_URL: ${API_URL:-http://api:3002}
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  app-network:
+    driver: bridge

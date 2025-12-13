@@ -10,6 +10,8 @@ const nextConfig = {
             },
         ]
     },
+    // Enable standalone output for smaller Docker images
+    output: 'standalone',
 }
 
 export default nextConfig
