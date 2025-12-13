@@ -31,7 +31,18 @@ RUN pnpm install --frozen-lockfile
 
 # Build the application
 # Use pnpm --filter to ensure proper workspace resolution
+# Note: NEXT_PUBLIC_* variables must be provided at build time via --build-arg
+# They will be baked into the build and cannot be changed at runtime
 WORKDIR /app
+
+# Accept build arguments for Next.js public environment variables
+ARG NEXT_PUBLIC_API_URL
+ARG NODE_ENV=production
+
+# Set as environment variables for the build
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NODE_ENV=${NODE_ENV}
+
 RUN pnpm --filter web build
 
 # Production stage - optimized for smaller image size
@@ -53,9 +64,12 @@ WORKDIR /app/apps/web
 EXPOSE 3000
 
 # Set environment to production
+# Note: These can be overridden at runtime via docker-compose or docker run
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+# API_URL is used by next.config.js rewrites and can be changed at runtime
+ENV API_URL=http://api:3002
 
 # Start the application using the standalone server
 CMD ["node", "server.js"]

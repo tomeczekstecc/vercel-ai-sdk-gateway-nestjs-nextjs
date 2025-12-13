@@ -39,6 +39,7 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
       --platform linux/amd64 \
       --push \
       --progress=plain \
+      --build-arg NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://api:3002} \
       -f apps/web/Dockerfile \
       -t ${REGISTRY}/${PROJECT}/web:${VERSION} . 2>&1 | tee /tmp/push.log; then
         echo "✅ Web image pushed successfully"
