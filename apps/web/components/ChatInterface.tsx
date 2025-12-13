@@ -58,7 +58,17 @@ export default function ChatInterface({ chatId }: ChatInterfaceProps) {
                     htmlFor='model-input'
                     className='block text-sm font-medium text-gray-400 mb-2'
                 >
-                    Model
+                    <span className='flex items-center gap-2'>
+                        Model
+                        <a
+                            href='https://vercel.com/ai-gateway/models'
+                            target='_blank'
+                            rel='noopener noreferrer'
+                            className='text-blue-400 hover:text-blue-300 text-xs'
+                        >
+                            (Sprawdź modele)
+                        </a>
+                    </span>
                     <input
                         id='model-input'
                         type='text'
